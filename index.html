@@ -1,0 +1,722 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <title>수학 왕국: 사라진 9개의 열쇠</title>
+  <style>
+    :root {
+      --ink: #eaf6ff;
+      --night: #071425;
+      --panel: rgba(7, 20, 37, .94);
+      --gold: #ffd86a;
+      --cyan: #6ce4ff;
+      --green: #5de39a;
+      --red: #ff6c72;
+      --line: rgba(255, 255, 255, .17);
+    }
+
+    * { box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; }
+    body {
+      font-family: "Pretendard", "Noto Sans KR", system-ui, sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 50% 15%, rgba(41, 102, 138, .45), transparent 42%),
+        linear-gradient(145deg, #07121e, #0b2234 60%, #07111f);
+      touch-action: none;
+      user-select: none;
+    }
+
+    button, input { font: inherit; }
+    button { color: inherit; }
+
+    #app {
+      width: 100%; height: 100%;
+      display: grid;
+      place-items: center;
+      padding: max(10px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right))
+               max(10px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left));
+    }
+
+    #gameShell {
+      position: relative;
+      width: min(100%, calc((100vh - 20px) * 16 / 9));
+      aspect-ratio: 16 / 9;
+      overflow: hidden;
+      border: 2px solid rgba(140, 221, 255, .45);
+      border-radius: 18px;
+      background: #1d4b3a;
+      box-shadow: 0 24px 80px rgba(0, 0, 0, .55), inset 0 0 0 1px rgba(255,255,255,.08);
+    }
+
+    canvas { display: block; width: 100%; height: 100%; }
+
+    .hud {
+      position: absolute; inset: 14px 14px auto 14px;
+      display: grid; grid-template-columns: 1fr auto; gap: 10px;
+      pointer-events: none;
+    }
+
+    .hud-card {
+      justify-self: start;
+      display: flex; align-items: center; gap: 12px;
+      min-height: 52px; padding: 9px 15px;
+      border: 1px solid rgba(255,255,255,.2);
+      border-radius: 14px;
+      background: rgba(4, 16, 28, .82);
+      box-shadow: 0 7px 22px rgba(0,0,0,.28);
+      backdrop-filter: blur(8px);
+    }
+
+    .hud-card strong { color: var(--gold); font-size: clamp(16px, 2vw, 23px); }
+    .hud-card small { display: block; color: #b8d3df; font-size: clamp(10px, 1.2vw, 13px); }
+    .keys { justify-self: end; font-weight: 900; color: var(--gold); font-size: clamp(15px, 2vw, 22px); }
+    #objective { max-width: min(53vw, 600px); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    .top-actions {
+      position: absolute; right: 15px; top: 80px;
+      display: flex; gap: 8px;
+    }
+
+    .icon-btn {
+      width: 43px; height: 43px; border-radius: 12px;
+      border: 1px solid rgba(255,255,255,.22);
+      background: rgba(4,16,28,.78); cursor: pointer;
+      box-shadow: 0 6px 18px rgba(0,0,0,.26);
+    }
+
+    .controls { position: absolute; inset: auto 15px 16px 15px; pointer-events: none; }
+    .dpad { position: absolute; left: 0; bottom: 0; width: 150px; height: 150px; pointer-events: auto; }
+    .dpad button, #actionButton {
+      position: absolute; border: 1px solid rgba(255,255,255,.25);
+      background: rgba(5,20,32,.76); box-shadow: 0 6px 16px rgba(0,0,0,.28);
+      cursor: pointer; -webkit-tap-highlight-color: transparent;
+    }
+    .dpad button { width: 50px; height: 50px; border-radius: 14px; font-weight: 900; font-size: 23px; }
+    .dpad button.active, .dpad button:active, #actionButton:active { background: rgba(57,148,171,.9); transform: scale(.95); }
+    [data-dir="up"] { left: 50px; top: 0; }
+    [data-dir="left"] { left: 0; top: 50px; }
+    [data-dir="right"] { left: 100px; top: 50px; }
+    [data-dir="down"] { left: 50px; top: 100px; }
+    #actionButton {
+      pointer-events: auto; right: 4px; bottom: 6px;
+      width: 92px; height: 92px; border-radius: 50%;
+      color: #082038; background: rgba(255,216,106,.94);
+      border: 5px solid rgba(255,255,255,.36); font-weight: 950;
+    }
+    #actionButton.ready { animation: pulse 1.2s infinite; }
+
+    .nearby {
+      position: absolute; left: 50%; bottom: 22%; transform: translateX(-50%);
+      border: 1px solid rgba(255,255,255,.22); border-radius: 999px;
+      background: rgba(4,16,28,.86); padding: 8px 16px; font-weight: 800;
+      opacity: 0; transition: .18s; pointer-events: none;
+    }
+    .nearby.show { opacity: 1; transform: translateX(-50%) translateY(-5px); }
+
+    .overlay {
+      position: absolute; inset: 0; z-index: 20;
+      display: grid; place-items: center; padding: 24px;
+      background: rgba(3, 10, 18, .78);
+      backdrop-filter: blur(8px);
+    }
+    .overlay.hidden { display: none; }
+
+    .panel {
+      width: min(94%, 820px); max-height: 94%; overflow: auto;
+      padding: clamp(22px, 4vw, 42px);
+      border: 1px solid rgba(255,255,255,.22); border-radius: 24px;
+      background: linear-gradient(150deg, rgba(13,39,59,.98), rgba(5,18,31,.98));
+      box-shadow: 0 28px 90px rgba(0,0,0,.55);
+    }
+    .panel h1, .panel h2 { margin: 0 0 12px; color: white; line-height: 1.18; }
+    .panel h1 { font-size: clamp(28px, 4.7vw, 50px); }
+    .panel h2 { font-size: clamp(23px, 3.4vw, 36px); }
+    .eyebrow { color: var(--cyan); font-weight: 900; letter-spacing: .08em; margin: 0 0 8px; }
+    .lead { color: #cae2ed; line-height: 1.65; }
+
+    .form-grid { display: grid; grid-template-columns: 1fr 1.4fr; gap: 12px; margin: 24px 0 18px; }
+    label { display: grid; gap: 7px; color: #c9dce5; font-weight: 800; }
+    input {
+      width: 100%; border: 1px solid rgba(255,255,255,.2); border-radius: 12px;
+      padding: 13px 14px; color: white; background: rgba(0,0,0,.24); outline: none;
+    }
+    input:focus { border-color: var(--cyan); box-shadow: 0 0 0 3px rgba(108,228,255,.13); }
+
+    .button-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 20px; }
+    .primary, .secondary, .danger {
+      border: 0; border-radius: 13px; padding: 13px 20px; font-weight: 900; cursor: pointer;
+    }
+    .primary { color: #112236; background: var(--gold); }
+    .secondary { background: #24506a; }
+    .danger { background: #713543; }
+    .primary:hover, .secondary:hover, .danger:hover { filter: brightness(1.1); }
+
+    .howto {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
+      margin-top: 24px;
+    }
+    .howto div { border-top: 1px solid var(--line); padding-top: 12px; color: #bad2de; line-height: 1.45; }
+    .howto strong { display: block; color: white; margin-bottom: 3px; }
+
+    .dialog-panel { max-width: 690px; }
+    .speaker { color: var(--gold); font-weight: 950; margin-bottom: 9px; }
+    #dialogText { font-size: clamp(17px, 2.2vw, 23px); line-height: 1.7; }
+
+    .puzzle-panel { width: min(96%, 940px); padding: clamp(16px, 2.8vw, 30px); }
+    .puzzle-copy { color: #cce2ec; margin: 6px 0 13px; line-height: 1.55; }
+    .puzzle-map {
+      position: relative; width: min(100%, 790px); aspect-ratio: 16 / 8.1; margin: 0 auto;
+      overflow: hidden; border-radius: 18px; border: 2px solid #8ebc7d;
+      background:
+        radial-gradient(circle at 26% 42%, rgba(255,255,255,.12) 0 2%, transparent 2.5%),
+        radial-gradient(circle at 70% 25%, rgba(255,255,255,.1) 0 1.6%, transparent 2%),
+        linear-gradient(#9dc47b, #74a666);
+    }
+    .puzzle-map::after {
+      content: ""; position: absolute; inset: 0; pointer-events: none;
+      background: repeating-linear-gradient(115deg, rgba(255,255,255,.025) 0 2px, transparent 2px 14px);
+    }
+    .roads { position: absolute; inset: 0; width: 100%; height: 100%; }
+    .roads path { fill: none; stroke: #d7b57e; stroke-width: 12; stroke-linecap: round; stroke-linejoin: round; }
+    .roads path.edge { stroke: rgba(84,66,41,.35); stroke-width: 17; }
+
+    .village {
+      position: absolute; z-index: 2; width: 86px; min-height: 75px;
+      transform: translate(-50%, -50%); border: 2px solid rgba(255,255,255,.55);
+      border-radius: 15px; background: rgba(8,28,39,.82); cursor: pointer;
+      display: grid; place-items: center; gap: 1px; padding: 6px;
+      box-shadow: 0 8px 18px rgba(0,0,0,.28); font-weight: 850;
+    }
+    .village .emoji { font-size: 31px; line-height: 1; }
+    .village:hover, .village:focus-visible { outline: 3px solid var(--cyan); transform: translate(-50%, -50%) scale(1.04); }
+    .village.wrong { animation: shake .35s; border-color: var(--red); }
+    .village.correct { border-color: var(--gold); box-shadow: 0 0 0 6px rgba(255,216,106,.25), 0 8px 18px rgba(0,0,0,.28); }
+    .v1 { left: 17%; top: 28%; }
+    .v2 { left: 44%; top: 42%; }
+    .v3 { left: 73%; top: 30%; }
+    .v4 { left: 32%; top: 76%; }
+    .v5 { left: 67%; top: 75%; }
+
+    .feedback {
+      min-height: 29px; margin-top: 12px; color: #d7e7ee; font-weight: 750; text-align: center;
+    }
+    .feedback.error { color: #ff9da1; }
+    .feedback.success { color: #7bf1ad; }
+    #hintButton[hidden] { display: none; }
+    .hint-box { margin-top: 10px; padding: 12px 14px; border-radius: 12px; background: rgba(108,228,255,.1); color: #caf5ff; }
+
+    .reward { text-align: center; }
+    .key-orb {
+      width: 122px; height: 122px; margin: 16px auto 24px; border-radius: 50%;
+      display: grid; place-items: center; font-size: 65px;
+      background: radial-gradient(circle, #fffbd4 0 10%, #ffd86a 35%, rgba(255,216,106,.15) 66%, transparent 68%);
+      animation: float 1.6s ease-in-out infinite;
+    }
+
+    .mini-note { color: #9fbdca; font-size: 13px; line-height: 1.5; margin-top: 14px; }
+
+    @keyframes pulse { 50% { box-shadow: 0 0 0 12px rgba(255,216,106,.18); } }
+    @keyframes shake { 25% { transform: translate(-56%, -50%); } 75% { transform: translate(-44%, -50%); } }
+    @keyframes float { 50% { transform: translateY(-8px) rotate(-5deg); } }
+
+    @media (max-width: 700px), (max-height: 520px) {
+      #gameShell { border-radius: 10px; }
+      .hud { inset: 8px 8px auto 8px; }
+      .hud-card { min-height: 40px; padding: 6px 10px; gap: 7px; }
+      .top-actions { right: 8px; top: 57px; }
+      .icon-btn { width: 37px; height: 37px; }
+      .dpad { transform: scale(.72); transform-origin: bottom left; }
+      #actionButton { transform: scale(.76); transform-origin: bottom right; }
+      #actionButton:active { transform: scale(.71); }
+      .overlay { padding: 10px; }
+      .panel { border-radius: 16px; padding: 18px; }
+      .form-grid { margin: 12px 0; }
+      .howto { margin-top: 12px; }
+      .village { width: 69px; min-height: 60px; padding: 4px; font-size: 11px; }
+      .village .emoji { font-size: 24px; }
+    }
+
+    @media (max-width: 620px) {
+      .form-grid, .howto { grid-template-columns: 1fr; }
+      .howto div:nth-child(n+2) { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <main id="app">
+    <section id="gameShell" aria-label="수학 왕국 게임 화면">
+      <canvas id="gameCanvas" width="1280" height="720"></canvas>
+
+      <header class="hud" aria-live="polite">
+        <div class="hud-card">
+          <div>🧭</div>
+          <div><small id="studentLabel">모험가</small><strong id="objective">안내인에게 가 보세요</strong></div>
+        </div>
+        <div class="hud-card keys"><span>🔑</span><span id="keyCount">0 / 9</span></div>
+      </header>
+
+      <div class="top-actions">
+        <button id="fullscreenButton" class="icon-btn" title="전체 화면" aria-label="전체 화면">⛶</button>
+        <button id="infoButton" class="icon-btn" title="도움말" aria-label="도움말">?</button>
+      </div>
+
+      <div id="nearbyPrompt" class="nearby">안내인과 이야기하기</div>
+
+      <div class="controls" aria-label="터치 조작 버튼">
+        <div class="dpad">
+          <button data-dir="up" aria-label="위로 이동">▲</button>
+          <button data-dir="left" aria-label="왼쪽으로 이동">◀</button>
+          <button data-dir="right" aria-label="오른쪽으로 이동">▶</button>
+          <button data-dir="down" aria-label="아래로 이동">▼</button>
+        </div>
+        <button id="actionButton">조사</button>
+      </div>
+
+      <section id="startOverlay" class="overlay">
+        <div class="panel">
+          <p class="eyebrow">2D RPG PROTOTYPE</p>
+          <h1>수학 왕국<br>사라진 9개의 열쇠</h1>
+          <p class="lead">왕국 곳곳의 수학 퍼즐을 해결해 아홉 개의 열쇠를 되찾으세요. 이 프로토타입에서는 시작 마을과 첫 번째 문제를 체험할 수 있습니다.</p>
+          <div class="form-grid">
+            <label>학번<input id="studentNumber" inputmode="numeric" maxlength="4" placeholder="예: 1201"></label>
+            <label>이름<input id="studentName" maxlength="10" placeholder="예: 홍길동"></label>
+          </div>
+          <div class="button-row">
+            <button id="startButton" class="primary">모험 시작하기</button>
+            <button id="continueButton" class="secondary" hidden>이어하기</button>
+          </div>
+          <div class="howto">
+            <div><strong>이동</strong>방향키, WASD 또는 화면 방향 버튼</div>
+            <div><strong>조사</strong>NPC 가까이에서 스페이스바 또는 조사 버튼</div>
+            <div><strong>목표</strong>첫 문제를 풀고 열쇠 1개 획득</div>
+          </div>
+          <p class="mini-note">학생 기록은 현재 기기에만 임시 저장됩니다. GAS 연동은 다음 개발 단계에서 추가합니다.</p>
+        </div>
+      </section>
+
+      <section id="dialogOverlay" class="overlay hidden">
+        <div class="panel dialog-panel">
+          <div class="speaker">마을 안내인 루미</div>
+          <div id="dialogText"></div>
+          <div class="button-row">
+            <button id="dialogPrimary" class="primary">문제 확인</button>
+            <button id="dialogClose" class="secondary">나중에</button>
+          </div>
+        </div>
+      </section>
+
+      <section id="puzzleOverlay" class="overlay hidden">
+        <div class="panel puzzle-panel">
+          <p class="eyebrow">첫 번째 열쇠</p>
+          <h2>길이 끊어진 마을</h2>
+          <p class="puzzle-copy">다른 어떤 마을과도 길이 이어져 있지 않은 마을을 찾아 터치하세요.</p>
+          <div class="puzzle-map" role="group" aria-label="다섯 마을이 표시된 지도">
+            <svg class="roads" viewBox="0 0 800 405" preserveAspectRatio="none" aria-hidden="true">
+              <path class="edge" d="M350 168 C455 112 535 104 585 122 M355 172 C314 225 282 258 255 307 M365 180 C424 247 468 289 535 306 M255 310 C350 354 455 353 535 307 M586 125 C650 176 642 251 535 306"/>
+              <path d="M350 168 C455 112 535 104 585 122 M355 172 C314 225 282 258 255 307 M365 180 C424 247 468 289 535 306 M255 310 C350 354 455 353 535 307 M586 125 C650 176 642 251 535 306"/>
+            </svg>
+            <button class="village v1" data-village="red"><span class="emoji">🏠</span><span>붉은 지붕</span></button>
+            <button class="village v2" data-village="tower"><span class="emoji">🏢</span><span>시계탑</span></button>
+            <button class="village v3" data-village="mill"><span class="emoji">🏚️</span><span>풍차 마을</span></button>
+            <button class="village v4" data-village="city"><span class="emoji">🏙️</span><span>푸른 도시</span></button>
+            <button class="village v5" data-village="well"><span class="emoji">⛲</span><span>우물 마을</span></button>
+          </div>
+          <div id="puzzleFeedback" class="feedback">길을 끝까지 따라가며 확인해 보세요.</div>
+          <div id="hintBox" class="hint-box" hidden>힌트: 마을에서 출발한 길이 다른 건물까지 실제로 이어지는지 확인하세요.</div>
+          <div class="button-row" style="justify-content:center">
+            <button id="hintButton" class="secondary" hidden>힌트 보기</button>
+            <button id="puzzleClose" class="secondary">지도로 돌아가기</button>
+          </div>
+        </div>
+      </section>
+
+      <section id="rewardOverlay" class="overlay hidden">
+        <div class="panel reward">
+          <p class="eyebrow">PUZZLE CLEAR</p>
+          <h2>첫 번째 열쇠를 찾았습니다</h2>
+          <div class="key-orb">🗝️</div>
+          <p class="lead">길이 끊어진 붉은 지붕 마을을 정확히 찾았습니다. 다음 지역은 전체 버전에서 열립니다.</p>
+          <div class="button-row" style="justify-content:center">
+            <button id="rewardClose" class="primary">마을로 돌아가기</button>
+          </div>
+        </div>
+      </section>
+
+      <section id="infoOverlay" class="overlay hidden">
+        <div class="panel">
+          <h2>프로토타입 도움말</h2>
+          <p class="lead">안내인 루미에게 가까이 이동한 뒤 조사 버튼을 누르세요. 첫 번째 문제를 풀면 진행 상황이 브라우저에 저장됩니다.</p>
+          <div class="button-row">
+            <button id="infoClose" class="primary">계속하기</button>
+            <button id="resetButton" class="danger">저장 기록 초기화</button>
+          </div>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <script>
+    (() => {
+      'use strict';
+
+      const canvas = document.getElementById('gameCanvas');
+      const ctx = canvas.getContext('2d');
+      const W = canvas.width;
+      const H = canvas.height;
+      const SAVE_KEY = 'namsan_math_rpg_prototype_v1';
+
+      const ui = Object.fromEntries([
+        'startOverlay','dialogOverlay','puzzleOverlay','rewardOverlay','infoOverlay',
+        'studentNumber','studentName','startButton','continueButton','studentLabel',
+        'objective','keyCount','nearbyPrompt','actionButton','dialogText','dialogPrimary',
+        'dialogClose','puzzleFeedback','hintButton','hintBox','puzzleClose','rewardClose',
+        'infoButton','infoClose','resetButton','fullscreenButton'
+      ].map(id => [id, document.getElementById(id)]));
+
+      const obstacles = [
+        { x: 515, y: 105, w: 220, h: 150 },
+        { x: 840, y: 70, w: 245, h: 155 },
+        { x: 98, y: 95, w: 240, h: 150 },
+        { x: 930, y: 495, w: 225, h: 135 }
+      ];
+
+      const npc = { x: 735, y: 388, r: 35 };
+      const state = {
+        running: false,
+        modalOpen: true,
+        player: { x: 220, y: 505, r: 21, facing: 'down', step: 0 },
+        keys: 0,
+        solved: false,
+        attempts: 0,
+        studentNumber: '',
+        studentName: '',
+        startTime: null
+      };
+
+      const held = { up: false, down: false, left: false, right: false };
+      let lastTime = performance.now();
+
+      function show(el) { el.classList.remove('hidden'); state.modalOpen = true; }
+      function hide(el) {
+        el.classList.add('hidden');
+        state.modalOpen = [...document.querySelectorAll('.overlay')].some(node => !node.classList.contains('hidden'));
+      }
+
+      function loadSave() {
+        try {
+          const saved = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null');
+          if (!saved) return;
+          ui.studentNumber.value = saved.studentNumber || '';
+          ui.studentName.value = saved.studentName || '';
+          ui.continueButton.hidden = false;
+          ui.continueButton.textContent = saved.solved ? '완료 기록 보기' : '이어하기';
+        } catch (_) { /* 손상된 저장 데이터는 무시 */ }
+      }
+
+      function applySave(saved) {
+        state.studentNumber = saved.studentNumber || '';
+        state.studentName = saved.studentName || '';
+        state.solved = Boolean(saved.solved);
+        state.keys = state.solved ? 1 : 0;
+        state.attempts = Number(saved.attempts || 0);
+        state.startTime = saved.startTime || Date.now();
+        if (saved.player) {
+          state.player.x = Number(saved.player.x || 220);
+          state.player.y = Number(saved.player.y || 505);
+        }
+        updateHud();
+      }
+
+      function saveGame() {
+        const data = {
+          studentNumber: state.studentNumber,
+          studentName: state.studentName,
+          solved: state.solved,
+          attempts: state.attempts,
+          keys: state.keys,
+          startTime: state.startTime,
+          updatedAt: Date.now(),
+          player: { x: Math.round(state.player.x), y: Math.round(state.player.y) }
+        };
+        localStorage.setItem(SAVE_KEY, JSON.stringify(data));
+      }
+
+      function beginGame(fromSave = false) {
+        if (fromSave) {
+          const saved = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null');
+          if (saved) applySave(saved);
+        } else {
+          const number = ui.studentNumber.value.trim();
+          const name = ui.studentName.value.trim();
+          if (!/^\d{4}$/.test(number)) {
+            ui.studentNumber.focus();
+            ui.studentNumber.setCustomValidity('학번 네 자리를 입력하세요.');
+            ui.studentNumber.reportValidity();
+            return;
+          }
+          ui.studentNumber.setCustomValidity('');
+          if (!name) {
+            ui.studentName.focus();
+            ui.studentName.setCustomValidity('이름을 입력하세요.');
+            ui.studentName.reportValidity();
+            return;
+          }
+          ui.studentName.setCustomValidity('');
+          state.studentNumber = number;
+          state.studentName = name;
+          state.startTime = Date.now();
+          saveGame();
+        }
+        state.running = true;
+        hide(ui.startOverlay);
+        updateHud();
+      }
+
+      function updateHud() {
+        ui.studentLabel.textContent = state.studentName ? `${state.studentNumber} ${state.studentName}` : '모험가';
+        ui.keyCount.textContent = `${state.keys} / 9`;
+        ui.objective.textContent = state.solved ? '첫 번째 열쇠 획득 완료' : '안내인 루미를 찾아가세요';
+      }
+
+      function distance(a, b) { return Math.hypot(a.x - b.x, a.y - b.y); }
+
+      function nearNpc() { return distance(state.player, npc) < 112; }
+
+      function overlapsObstacle(x, y, r) {
+        return obstacles.some(o => {
+          const cx = Math.max(o.x, Math.min(x, o.x + o.w));
+          const cy = Math.max(o.y, Math.min(y, o.y + o.h));
+          return Math.hypot(x - cx, y - cy) < r + 5;
+        });
+      }
+
+      function movePlayer(dx, dy) {
+        const p = state.player;
+        const nx = Math.max(p.r + 12, Math.min(W - p.r - 12, p.x + dx));
+        const ny = Math.max(p.r + 12, Math.min(H - p.r - 12, p.y + dy));
+        if (!overlapsObstacle(nx, p.y, p.r)) p.x = nx;
+        if (!overlapsObstacle(p.x, ny, p.r)) p.y = ny;
+        p.step += Math.abs(dx) + Math.abs(dy);
+        if (Math.abs(dx) > Math.abs(dy)) p.facing = dx > 0 ? 'right' : 'left';
+        else if (dy !== 0) p.facing = dy > 0 ? 'down' : 'up';
+      }
+
+      function update(dt) {
+        if (!state.running || state.modalOpen) return;
+        let dx = 0, dy = 0;
+        if (held.left) dx -= 1;
+        if (held.right) dx += 1;
+        if (held.up) dy -= 1;
+        if (held.down) dy += 1;
+        if (dx || dy) {
+          const len = Math.hypot(dx, dy);
+          const speed = 245 * dt;
+          movePlayer(dx / len * speed, dy / len * speed);
+        }
+        const near = nearNpc();
+        ui.nearbyPrompt.classList.toggle('show', near);
+        ui.actionButton.classList.toggle('ready', near);
+      }
+
+      function roundedRect(x, y, w, h, r, fill, stroke) {
+        ctx.beginPath();
+        ctx.roundRect(x, y, w, h, r);
+        if (fill) { ctx.fillStyle = fill; ctx.fill(); }
+        if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = 3; ctx.stroke(); }
+      }
+
+      function drawTree(x, y, scale = 1) {
+        ctx.fillStyle = '#6c4c2d'; ctx.fillRect(x - 7*scale, y + 13*scale, 14*scale, 28*scale);
+        ctx.fillStyle = '#246b48';
+        ctx.beginPath(); ctx.arc(x, y, 29*scale, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = '#3f8b58';
+        ctx.beginPath(); ctx.arc(x - 12*scale, y - 8*scale, 17*scale, 0, Math.PI*2); ctx.fill();
+      }
+
+      function drawHouse(o, wall, roof, label) {
+        roundedRect(o.x, o.y + 42, o.w, o.h - 42, 12, wall, '#203b3b');
+        ctx.fillStyle = roof;
+        ctx.beginPath();
+        ctx.moveTo(o.x - 15, o.y + 54); ctx.lineTo(o.x + o.w / 2, o.y - 8); ctx.lineTo(o.x + o.w + 15, o.y + 54); ctx.closePath(); ctx.fill();
+        ctx.fillStyle = '#593d2a'; ctx.fillRect(o.x + o.w*.42, o.y + o.h - 65, o.w*.17, 65);
+        ctx.fillStyle = '#c8f3ff'; ctx.fillRect(o.x + 28, o.y + 70, 35, 31); ctx.fillRect(o.x + o.w - 63, o.y + 70, 35, 31);
+        ctx.font = '700 19px sans-serif'; ctx.textAlign = 'center';
+        roundedRect(o.x + 25, o.y + o.h + 8, o.w - 50, 33, 10, 'rgba(4,20,28,.76)');
+        ctx.fillStyle = '#f3fbff'; ctx.fillText(label, o.x + o.w/2, o.y + o.h + 31);
+      }
+
+      function drawNpc() {
+        const bob = Math.sin(performance.now()/380) * 2;
+        ctx.save(); ctx.translate(npc.x, npc.y + bob);
+        ctx.fillStyle = 'rgba(0,0,0,.2)'; ctx.beginPath(); ctx.ellipse(0, 33, 30, 11, 0, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = '#f0c79d'; ctx.beginPath(); ctx.arc(0, -18, 18, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = '#e8bf4f'; ctx.beginPath(); ctx.arc(0, -24, 20, Math.PI, Math.PI*2); ctx.fill();
+        ctx.fillStyle = '#3c78a1'; roundedRect(-20, 0, 40, 45, 12, '#3c78a1');
+        ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(-6, -18, 2.5, 0, Math.PI*2); ctx.arc(6, -18, 2.5, 0, Math.PI*2); ctx.fill();
+        ctx.restore();
+        roundedRect(npc.x - 66, npc.y - 91, 132, 31, 12, 'rgba(4,20,28,.8)');
+        ctx.fillStyle = '#fff'; ctx.font = '800 16px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('안내인 루미', npc.x, npc.y - 69);
+        if (!state.solved) {
+          ctx.fillStyle = '#ffd86a'; ctx.font = '900 33px sans-serif'; ctx.fillText('!', npc.x, npc.y - 105);
+        }
+      }
+
+      function drawPlayer() {
+        const p = state.player;
+        const bounce = Math.sin(p.step * .04) * 2;
+        ctx.save(); ctx.translate(p.x, p.y + bounce);
+        ctx.fillStyle = 'rgba(0,0,0,.22)'; ctx.beginPath(); ctx.ellipse(0, 23, 25, 9, 0, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = '#1d2741'; ctx.fillRect(-14, 13, 11, 23); ctx.fillRect(4, 13, 11, 23);
+        ctx.fillStyle = '#d94d54'; roundedRect(-20, -8, 40, 35, 11, '#d94d54');
+        ctx.fillStyle = '#f0c49b'; ctx.beginPath(); ctx.arc(0, -25, 18, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = '#283955'; ctx.beginPath(); ctx.arc(0, -31, 19, Math.PI, Math.PI*2); ctx.fill();
+        ctx.fillStyle = '#fff';
+        const eyeX = p.facing === 'left' ? -7 : p.facing === 'right' ? 7 : 0;
+        ctx.beginPath(); ctx.arc(eyeX - 5, -24, 2.3, 0, Math.PI*2); ctx.arc(eyeX + 5, -24, 2.3, 0, Math.PI*2); ctx.fill();
+        ctx.restore();
+      }
+
+      function drawMap() {
+        const g = ctx.createLinearGradient(0,0,0,H);
+        g.addColorStop(0, '#68a665'); g.addColorStop(1, '#3d7f59');
+        ctx.fillStyle = g; ctx.fillRect(0,0,W,H);
+
+        ctx.fillStyle = 'rgba(255,255,255,.04)';
+        for (let y=30; y<H; y+=52) for (let x=(y/52%2)*28; x<W; x+=56) {
+          ctx.beginPath(); ctx.arc(x,y,2.2,0,Math.PI*2); ctx.fill();
+        }
+
+        ctx.strokeStyle = '#d6b979'; ctx.lineWidth = 74; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+        ctx.beginPath(); ctx.moveTo(120, 545); ctx.bezierCurveTo(310,460, 430,430, 585,410); ctx.bezierCurveTo(760,385, 860,350, 1030,300); ctx.stroke();
+        ctx.strokeStyle = 'rgba(118,82,45,.25)'; ctx.lineWidth = 4; ctx.setLineDash([8,14]); ctx.stroke(); ctx.setLineDash([]);
+
+        ctx.fillStyle = '#4ea8c7'; ctx.beginPath(); ctx.moveTo(1125,0); ctx.bezierCurveTo(1040,180,1190,360,1095,720); ctx.lineTo(1280,720); ctx.lineTo(1280,0); ctx.closePath(); ctx.fill();
+        ctx.strokeStyle = 'rgba(218,249,255,.34)'; ctx.lineWidth = 5;
+        for (let y=80; y<680; y+=105) { ctx.beginPath(); ctx.moveTo(1140,y); ctx.bezierCurveTo(1190,y-20,1220,y+20,1260,y); ctx.stroke(); }
+
+        for (let i=0;i<15;i++) drawTree(45 + (i%5)*88, 300 + Math.floor(i/5)*115, .72 + (i%3)*.08);
+        for (let i=0;i<9;i++) drawTree(790 + (i%3)*92, 510 + Math.floor(i/3)*80, .68);
+
+        drawHouse(obstacles[0], '#e1c387', '#b14f45', '모험가 숙소');
+        drawHouse(obstacles[1], '#c7b6df', '#59468a', '지혜의 도서관');
+        drawHouse(obstacles[2], '#e5d3a5', '#527c9b', '마을 회관');
+        drawHouse(obstacles[3], '#d9b785', '#7c4a37', '잠긴 창고');
+
+        ctx.fillStyle = 'rgba(4,20,28,.72)'; roundedRect(1078, 255, 150, 44, 12, 'rgba(4,20,28,.72)');
+        ctx.fillStyle = '#fff'; ctx.font = '800 18px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('다음 지역 🔒', 1153, 284);
+
+        drawNpc();
+        drawPlayer();
+      }
+
+      function render() { ctx.clearRect(0,0,W,H); drawMap(); }
+
+      function frame(now) {
+        const dt = Math.min((now - lastTime) / 1000, .035);
+        lastTime = now;
+        update(dt); render();
+        requestAnimationFrame(frame);
+      }
+
+      function interact() {
+        if (!state.running || state.modalOpen) return;
+        if (nearNpc()) openNpcDialog();
+      }
+
+      function openNpcDialog() {
+        if (state.solved) {
+          ui.dialogText.innerHTML = '첫 번째 열쇠가 빛나고 있군요! 지금은 프로토타입이라 다음 지역의 문이 잠겨 있습니다.';
+          ui.dialogPrimary.textContent = '열쇠 다시 보기';
+          ui.dialogPrimary.onclick = () => { hide(ui.dialogOverlay); show(ui.rewardOverlay); };
+        } else {
+          ui.dialogText.innerHTML = '여행자님, 왕국의 첫 번째 열쇠가 길이 끊어진 마을에 숨겨져 있어요. 지도를 보고 다른 마을과 연결되지 않은 곳을 찾아 주세요.';
+          ui.dialogPrimary.textContent = '문제 확인';
+          ui.dialogPrimary.onclick = () => { hide(ui.dialogOverlay); openPuzzle(); };
+        }
+        show(ui.dialogOverlay);
+      }
+
+      function openPuzzle() {
+        ui.puzzleFeedback.className = 'feedback';
+        ui.puzzleFeedback.textContent = '길을 끝까지 따라가며 확인해 보세요.';
+        ui.hintButton.hidden = state.attempts < 2;
+        ui.hintBox.hidden = true;
+        document.querySelectorAll('.village').forEach(v => v.classList.remove('wrong','correct'));
+        show(ui.puzzleOverlay);
+      }
+
+      function chooseVillage(button) {
+        if (state.solved) return;
+        const isCorrect = button.dataset.village === 'red';
+        if (isCorrect) {
+          button.classList.add('correct');
+          ui.puzzleFeedback.className = 'feedback success';
+          ui.puzzleFeedback.textContent = '정답입니다! 붉은 지붕 마을로 이어지는 길이 없습니다.';
+          state.solved = true;
+          state.keys = 1;
+          saveGame(); updateHud();
+          setTimeout(() => { hide(ui.puzzleOverlay); show(ui.rewardOverlay); }, 850);
+        } else {
+          state.attempts += 1;
+          button.classList.remove('wrong'); void button.offsetWidth; button.classList.add('wrong');
+          ui.puzzleFeedback.className = 'feedback error';
+          ui.puzzleFeedback.textContent = '이 마을에는 다른 곳으로 이어지는 길이 있습니다. 다시 확인하세요.';
+          if (state.attempts >= 2) ui.hintButton.hidden = false;
+          saveGame();
+        }
+      }
+
+      const keyMap = {
+        ArrowUp: 'up', KeyW: 'up', ArrowDown: 'down', KeyS: 'down',
+        ArrowLeft: 'left', KeyA: 'left', ArrowRight: 'right', KeyD: 'right'
+      };
+      window.addEventListener('keydown', e => {
+        if (keyMap[e.code]) { held[keyMap[e.code]] = true; e.preventDefault(); }
+        if (e.code === 'Space' || e.code === 'Enter') { interact(); e.preventDefault(); }
+      });
+      window.addEventListener('keyup', e => { if (keyMap[e.code]) held[keyMap[e.code]] = false; });
+      window.addEventListener('blur', () => Object.keys(held).forEach(k => held[k] = false));
+
+      document.querySelectorAll('[data-dir]').forEach(button => {
+        const dir = button.dataset.dir;
+        const on = e => { e.preventDefault(); held[dir] = true; button.classList.add('active'); button.setPointerCapture?.(e.pointerId); };
+        const off = e => { e.preventDefault(); held[dir] = false; button.classList.remove('active'); };
+        button.addEventListener('pointerdown', on);
+        button.addEventListener('pointerup', off);
+        button.addEventListener('pointercancel', off);
+        button.addEventListener('pointerleave', off);
+      });
+
+      ui.startButton.addEventListener('click', () => beginGame(false));
+      ui.continueButton.addEventListener('click', () => beginGame(true));
+      ui.actionButton.addEventListener('click', interact);
+      ui.dialogClose.addEventListener('click', () => hide(ui.dialogOverlay));
+      ui.puzzleClose.addEventListener('click', () => hide(ui.puzzleOverlay));
+      ui.rewardClose.addEventListener('click', () => { hide(ui.rewardOverlay); saveGame(); });
+      ui.hintButton.addEventListener('click', () => { ui.hintBox.hidden = false; ui.hintButton.hidden = true; });
+      ui.infoButton.addEventListener('click', () => show(ui.infoOverlay));
+      ui.infoClose.addEventListener('click', () => hide(ui.infoOverlay));
+      ui.resetButton.addEventListener('click', () => {
+        if (!confirm('현재 기기에 저장된 진행 기록을 초기화할까요?')) return;
+        localStorage.removeItem(SAVE_KEY); location.reload();
+      });
+      ui.fullscreenButton.addEventListener('click', async () => {
+        try {
+          if (!document.fullscreenElement) {
+            await document.getElementById('gameShell').requestFullscreen();
+            await screen.orientation?.lock?.('landscape');
+          } else await document.exitFullscreen();
+        } catch (_) { /* 기기에서 전체 화면 고정을 지원하지 않아도 게임은 계속됨 */ }
+      });
+      document.querySelectorAll('.village').forEach(button => button.addEventListener('click', () => chooseVillage(button)));
+
+      window.addEventListener('beforeunload', () => { if (state.running) saveGame(); });
+      setInterval(() => { if (state.running && !state.solved) saveGame(); }, 5000);
+
+      loadSave(); updateHud(); requestAnimationFrame(frame);
+    })();
+  </script>
+</body>
+</html>
