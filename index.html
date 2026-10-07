@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- FILE VERSION: MAP-TRANSITION-V2-20261007 -->
+<!-- FILE VERSION: CHARACTER-SPRITE-V3-20261007 -->
 <html lang="ko">
 <head>
   <meta charset="utf-8">
@@ -38,8 +38,15 @@
     .eyebrow { margin:0 0 8px; color:var(--cyan); font-weight:900; letter-spacing:.08em; }
     h1,h2 { margin:0 0 14px; line-height:1.18; } h1 { font-size:clamp(29px,4.8vw,52px); } h2 { font-size:clamp(23px,3.6vw,36px); }
     .lead { color:#cbe2ec; line-height:1.65; }
-    .places { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin:18px 0; }
-    .places span { padding:9px; border-radius:10px; background:rgba(255,255,255,.07); text-align:center; }
+    .class-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin:16px 0; }
+    .class-choice { display:grid; justify-items:center; gap:3px; padding:9px 6px; border:2px solid rgba(255,255,255,.13); border-radius:15px; color:#d9ebf3; background:rgba(255,255,255,.055); cursor:pointer; }
+    .class-choice strong { color:#fff; font-size:15px; }
+    .class-choice small { color:#a9c6d2; font-size:11px; }
+    .class-choice.selected { border-color:var(--gold); background:rgba(255,216,106,.13); box-shadow:0 0 0 3px rgba(255,216,106,.08); }
+    .class-portrait { width:86px; height:86px; background-repeat:no-repeat; background-size:400% 300%; background-position:0 0; }
+    .class-portrait.knight { background-image:url('assets/sprite_rune_knight_v1.png'); }
+    .class-portrait.mage { background-image:url('assets/sprite_arcana_mage_v1.png'); }
+    .class-portrait.ranger { background-image:url('assets/sprite_shadow_ranger_v1.png'); }
     .button-row { display:flex; gap:9px; flex-wrap:wrap; margin-top:18px; }
     .primary { border:0; border-radius:13px; padding:13px 20px; font-weight:900; cursor:pointer; color:#102236; background:var(--gold); }
     .primary:disabled { cursor:wait; opacity:.6; }
@@ -47,7 +54,7 @@
     @media (max-width:700px),(max-height:520px) {
       #gameShell { border-radius:9px; } .hud { inset:7px 7px auto 7px; } .hud-card { min-height:39px; padding:5px 9px; }
       .top-actions { top:53px; right:7px; } .icon-btn { width:36px; height:36px; } .dpad { transform:scale(.72); transform-origin:bottom left; }
-      .overlay { padding:9px; } .panel { padding:17px; border-radius:16px; } .places { grid-template-columns:repeat(2,1fr); margin:11px 0; font-size:13px; }
+      .overlay { padding:9px; } .panel { padding:15px; border-radius:16px; } .class-grid { margin:8px 0; gap:6px; } .class-choice { padding:4px; } .class-portrait { width:68px; height:68px; }
     }
   </style>
 </head>
@@ -57,7 +64,7 @@
       <canvas id="gameCanvas" width="1280" height="720"></canvas>
       <header class="hud">
         <div class="hud-card"><div>🧭</div><div><small>현재 위치</small><strong id="sceneName">중앙 마을</strong></div></div>
-        <div class="hud-card test-badge">MAP TEST v2.0</div>
+        <div class="hud-card test-badge">v3 · <span id="className">룬 기사</span></div>
       </header>
       <div class="top-actions">
         <button id="fullscreenButton" class="icon-btn" aria-label="전체 화면" title="전체 화면">⛶</button>
@@ -71,10 +78,14 @@
       <div id="sceneFade"><strong id="fadeText">중앙 마을</strong></div>
       <section id="startOverlay" class="overlay"><div class="panel">
         <p class="eyebrow">MAP TRANSITION TEST</p><h1>수학 왕국<br>마을 탐색 테스트</h1>
-        <p class="lead">캐릭터를 움직여 여섯 장소의 입구에 닿아 보세요. 내부에서는 화면 아래쪽 출구로 이동하면 마을의 원래 건물 앞으로 돌아옵니다.</p>
-        <div class="places"><span>⚔️ 모험가 길드</span><span>🍲 주황 여관</span><span>📚 마법 도서관</span><span>🏹 훈련장</span><span>💎 봉인 던전</span><span>🏰 왕성</span></div>
+        <p class="lead">직업을 선택한 뒤 여섯 장소를 탐색해 보세요. 선택한 캐릭터는 이동 방향에 맞춰 걷습니다.</p>
+        <div class="class-grid" role="group" aria-label="직업 선택">
+          <button class="class-choice selected" data-class="knight"><span class="class-portrait knight"></span><strong>룬 기사</strong><small>방어와 용기</small></button>
+          <button class="class-choice" data-class="mage"><span class="class-portrait mage"></span><strong>아르카나 마법사</strong><small>지식과 마법</small></button>
+          <button class="class-choice" data-class="ranger"><span class="class-portrait ranger"></span><strong>그림자 궁수</strong><small>민첩과 관찰</small></button>
+        </div>
         <div class="button-row"><button id="startButton" class="primary" disabled>이미지 불러오는 중…</button></div>
-        <p class="note"><strong>파일 버전: MAP-TRANSITION-V2</strong><br>이번 버전은 맵 전환 확인용입니다. 문제, 스토리, NPC, 정교한 벽 충돌은 다음 단계에서 적용합니다.</p>
+        <p class="note"><strong>파일 버전: CHARACTER-SPRITE-V3</strong><br>직업 선택·4방향 보행·맵 전환 확인용입니다. 문제와 스토리는 다음 단계에서 적용합니다.</p>
       </div></section>
       <section id="infoOverlay" class="overlay hidden"><div class="panel">
         <h2>조작 방법</h2><p class="lead">PC에서는 방향키 또는 WASD, 휴대폰·태블릿에서는 왼쪽 아래 방향 버튼으로 이동합니다. 마을의 빛나는 입구에 닿으면 자동 입장합니다. 내부에서 화면 아래쪽의 파란 출구에 닿으면 마을로 돌아옵니다.</p>
@@ -86,7 +97,7 @@
     (() => {
       'use strict';
       const canvas=document.getElementById('gameCanvas'), ctx=canvas.getContext('2d'), W=canvas.width, H=canvas.height;
-      const ui=Object.fromEntries(['sceneName','nearbyPrompt','sceneFade','fadeText','startOverlay','startButton','infoOverlay','infoButton','infoClose','fullscreenButton'].map(id=>[id,document.getElementById(id)]));
+      const ui=Object.fromEntries(['sceneName','className','nearbyPrompt','sceneFade','fadeText','startOverlay','startButton','infoOverlay','infoButton','infoClose','fullscreenButton'].map(id=>[id,document.getElementById(id)]));
       const sceneData={
         village:{name:'중앙 마을',image:'assets/central_village_map_anime_fantasy.png'},
         guild:{name:'모험가 길드',image:'assets/interior_adventurer_guild.png'},
@@ -95,6 +106,11 @@
         training:{name:'훈련장',image:'assets/interior_training_yard.png'},
         dungeon:{name:'봉인 던전',image:'assets/interior_sealed_dungeon.png'},
         castle:{name:'왕성 대전',image:'assets/interior_royal_castle.png'}
+      };
+      const characterData={
+        knight:{name:'룬 기사',image:'assets/sprite_rune_knight_v1.png'},
+        mage:{name:'아르카나 마법사',image:'assets/sprite_arcana_mage_v1.png'},
+        ranger:{name:'그림자 궁수',image:'assets/sprite_shadow_ranger_v1.png'}
       };
       const portals=[
         {scene:'guild',name:'모험가 길드',x:150,y:300,enterR:38,nearR:90,returnX:205,returnY:345},
@@ -105,14 +121,15 @@
         {scene:'castle',name:'왕성',x:638,y:78,enterR:42,nearR:96,returnX:638,returnY:155}
       ];
       const images={}, held={up:false,down:false,left:false,right:false};
-      const state={running:false,modalOpen:true,transitioning:false,scene:'village',returnPortal:null,portalCooldown:0,player:{x:638,y:610,r:17,facing:'up',step:0}};
+      const state={running:false,modalOpen:true,transitioning:false,scene:'village',character:'knight',moving:false,returnPortal:null,portalCooldown:0,player:{x:638,y:610,r:17,facing:'up',step:0}};
       let lastTime=performance.now();
       const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
       const show=el=>{el.classList.remove('hidden');state.modalOpen=true;};
       const hide=el=>{el.classList.add('hidden');state.modalOpen=[...document.querySelectorAll('.overlay')].some(n=>!n.classList.contains('hidden'));};
 
       function loadImages(){
-        const jobs=Object.entries(sceneData).map(([key,scene])=>new Promise((resolve,reject)=>{const img=new Image();img.onload=()=>{images[key]=img;resolve();};img.onerror=()=>reject(new Error(scene.image));img.src=scene.image;}));
+        const assets={...sceneData,...Object.fromEntries(Object.entries(characterData).map(([key,value])=>[`character_${key}`,value]))};
+        const jobs=Object.entries(assets).map(([key,asset])=>new Promise((resolve,reject)=>{const img=new Image();img.onload=()=>{images[key]=img;resolve();};img.onerror=()=>reject(new Error(asset.image));img.src=asset.image;}));
         Promise.all(jobs).then(()=>{ui.startButton.disabled=false;ui.startButton.textContent='맵 탐색 시작';}).catch(error=>{ui.startButton.textContent='이미지 경로를 확인하세요';document.querySelector('.note').textContent=`불러오지 못한 파일: ${error.message}`;});
       }
       function movePlayer(dx,dy){
@@ -135,21 +152,24 @@
         }
       }
       function update(dt){
-        if(!state.running||state.modalOpen||state.transitioning)return;state.portalCooldown=Math.max(0,state.portalCooldown-dt);let dx=0,dy=0;
+        if(!state.running||state.modalOpen||state.transitioning){state.moving=false;return;}state.portalCooldown=Math.max(0,state.portalCooldown-dt);let dx=0,dy=0;
         if(held.left)dx--;if(held.right)dx++;if(held.up)dy--;if(held.down)dy++;
-        if(dx||dy){const length=Math.hypot(dx,dy),speed=235*dt;movePlayer(dx/length*speed,dy/length*speed);}checkPortals();
+        state.moving=Boolean(dx||dy);if(state.moving){const length=Math.hypot(dx,dy),speed=235*dt;movePlayer(dx/length*speed,dy/length*speed);}checkPortals();
       }
       function roundRect(x,y,w,h,r,fill,stroke){ctx.beginPath();ctx.roundRect(x,y,w,h,r);if(fill){ctx.fillStyle=fill;ctx.fill();}if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=3;ctx.stroke();}}
       function drawPortalMarker(portal,time){const pulse=1+Math.sin(time/250)*.09;ctx.save();ctx.translate(portal.x,portal.y);ctx.scale(pulse,pulse);ctx.fillStyle='rgba(83,225,255,.15)';ctx.strokeStyle='rgba(135,240,255,.88)';ctx.lineWidth=3;ctx.beginPath();ctx.ellipse(0,0,34,16,0,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.restore();}
       function drawExitMarker(time){const alpha=.55+Math.sin(time/300)*.18,gradient=ctx.createRadialGradient(W/2,H-25,5,W/2,H-25,95);gradient.addColorStop(0,`rgba(87,225,255,${alpha})`);gradient.addColorStop(1,'rgba(87,225,255,0)');ctx.fillStyle=gradient;ctx.fillRect(W/2-110,H-110,220,110);ctx.strokeStyle='rgba(150,245,255,.9)';ctx.lineWidth=4;ctx.beginPath();ctx.ellipse(W/2,H-20,78,22,0,0,Math.PI*2);ctx.stroke();}
       function drawPlayer(){
-        const p=state.player,bounce=Math.sin(p.step*.055)*2;ctx.save();ctx.translate(p.x,p.y+bounce);ctx.fillStyle='rgba(0,0,0,.32)';ctx.beginPath();ctx.ellipse(0,24,22,8,0,0,Math.PI*2);ctx.fill();ctx.fillStyle='#20324e';ctx.fillRect(-12,12,9,22);ctx.fillRect(4,12,9,22);roundRect(-18,-8,36,34,10,'#3979ba','#dcefff');ctx.fillStyle='#f0c49b';ctx.beginPath();ctx.arc(0,-25,16,0,Math.PI*2);ctx.fill();ctx.fillStyle='#253a59';ctx.beginPath();ctx.arc(0,-31,17,Math.PI,Math.PI*2);ctx.fill();ctx.fillStyle='#fff';const eyeX=p.facing==='left'?-6:p.facing==='right'?6:0;ctx.beginPath();ctx.arc(eyeX-4,-24,2,0,Math.PI*2);ctx.arc(eyeX+4,-24,2,0,Math.PI*2);ctx.fill();ctx.fillStyle='#ffd86a';ctx.fillRect(-4,-2,8,17);ctx.restore();
+        const p=state.player,img=images[`character_${state.character}`];ctx.fillStyle='rgba(0,0,0,.3)';ctx.beginPath();ctx.ellipse(p.x,p.y+8,24,8,0,0,Math.PI*2);ctx.fill();
+        if(!img)return;const columns={down:0,left:1,right:2,up:3},col=columns[p.facing]??0,row=state.moving?(Math.floor(p.step/30)%2?1:2):0,sw=img.width/4,sh=img.height/3,size=94;
+        ctx.drawImage(img,col*sw,row*sh,sw,sh,p.x-size/2,p.y-size+18,size,size);
       }
       function render(now){const image=images[state.scene];if(image)ctx.drawImage(image,0,0,W,H);else{ctx.fillStyle='#102237';ctx.fillRect(0,0,W,H);}if(state.scene==='village')portals.forEach(portal=>drawPortalMarker(portal,now));else drawExitMarker(now);drawPlayer();}
       function frame(now){const dt=Math.min((now-lastTime)/1000,.035);lastTime=now;update(dt);render(now);requestAnimationFrame(frame);}
       const keyMap={ArrowUp:'up',KeyW:'up',ArrowDown:'down',KeyS:'down',ArrowLeft:'left',KeyA:'left',ArrowRight:'right',KeyD:'right'};
       window.addEventListener('keydown',e=>{if(keyMap[e.code]){held[keyMap[e.code]]=true;e.preventDefault();}});window.addEventListener('keyup',e=>{if(keyMap[e.code])held[keyMap[e.code]]=false;});window.addEventListener('blur',()=>Object.keys(held).forEach(k=>held[k]=false));
       document.querySelectorAll('[data-dir]').forEach(button=>{const dir=button.dataset.dir;const press=e=>{e.preventDefault();held[dir]=true;button.classList.add('active');button.setPointerCapture?.(e.pointerId);};const release=e=>{e.preventDefault();held[dir]=false;button.classList.remove('active');};button.addEventListener('pointerdown',press);button.addEventListener('pointerup',release);button.addEventListener('pointercancel',release);button.addEventListener('pointerleave',release);});
+      document.querySelectorAll('[data-class]').forEach(button=>button.addEventListener('click',()=>{state.character=button.dataset.class;ui.className.textContent=characterData[state.character].name;document.querySelectorAll('[data-class]').forEach(item=>item.classList.toggle('selected',item===button));}));
       ui.startButton.addEventListener('click',()=>{state.running=true;hide(ui.startOverlay);});ui.infoButton.addEventListener('click',()=>show(ui.infoOverlay));ui.infoClose.addEventListener('click',()=>hide(ui.infoOverlay));
       ui.fullscreenButton.addEventListener('click',async()=>{try{if(!document.fullscreenElement){await document.getElementById('gameShell').requestFullscreen();await screen.orientation?.lock?.('landscape');}else await document.exitFullscreen();}catch(_){}});
       loadImages();requestAnimationFrame(frame);
