@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- FILE VERSION: FINAL-V12.2-END-CONTROLS-FIXED-NO-SAVE-20261008 -->
+<!-- FILE VERSION: FINAL-V12.3-FULL-END-MOVIE-NO-SAVE-20261008 -->
 <html lang="ko">
 <head>
   <meta charset="utf-8">
@@ -47,11 +47,10 @@
     .opening-controls button { min-width:120px; box-shadow:0 8px 28px rgba(0,0,0,.5); }
     .opening-status { flex-basis:100%; min-height:20px; margin:0; color:#d7e8ef; font-size:13px; text-align:center; text-shadow:0 2px 8px #000; }
     .opening-controls [hidden] { display:none; }
-    #endingVideoControls { position:absolute; z-index:5; top:12px; right:12px; bottom:auto; left:auto; width:auto; max-width:calc(100% - 24px); margin:0; justify-content:flex-end; gap:6px; flex-wrap:wrap; transform:none; }
-    .ending-video-controls button { min-width:0; padding:8px 11px; border-color:rgba(255,255,255,.22); background:rgba(8,32,50,.68); box-shadow:0 4px 15px rgba(0,0,0,.34); font-size:12px; opacity:.82; backdrop-filter:blur(6px); }
-    .ending-video-controls button:hover,.ending-video-controls button:focus-visible { opacity:1; }
-    .ending-video-controls .opening-status { flex-basis:100%; min-height:0; padding:5px 8px; border-radius:8px; background:rgba(2,9,17,.66); text-align:right; }
-    .ending-video-controls .opening-status:empty { display:none; }
+    #endingVideo { pointer-events:none; }
+    .ending-tap-prompt { position:absolute; z-index:5; inset:0; display:grid; place-items:center; padding:0; border:0; color:#fff; background:rgba(2,9,17,.58); cursor:pointer; }
+    .ending-tap-prompt[hidden] { display:none; }
+    .ending-tap-prompt span { padding:13px 20px; border:1px solid rgba(255,255,255,.3); border-radius:12px; background:rgba(8,38,55,.9); box-shadow:0 8px 28px rgba(0,0,0,.5); font-weight:900; }
     .panel { width:min(94%,720px); max-height:94%; overflow:auto; padding:clamp(22px,4vw,42px); border-radius:23px; border:1px solid rgba(255,255,255,.22); background:linear-gradient(150deg,rgba(14,45,68,.98),rgba(5,18,31,.98)); box-shadow:0 28px 90px rgba(0,0,0,.58); }
     .eyebrow { margin:0 0 8px; color:var(--cyan); font-weight:900; letter-spacing:.08em; }
     h1,h2 { margin:0 0 14px; line-height:1.18; } h1 { font-size:clamp(29px,4.8vw,52px); } h2 { font-size:clamp(23px,3.6vw,36px); }
@@ -167,8 +166,7 @@
       .top-actions { top:50px; right:6px; } .icon-btn { width:35px; height:35px; } .dpad { transform:scale(.7); transform-origin:bottom left; } #actionButton { width:68px; height:68px; }
       .overlay { padding:7px; } .panel { padding:14px; border-radius:15px; } .class-grid { margin:7px 0; gap:5px; } .class-choice { padding:3px; } .class-portrait { width:62px; height:62px; }
       .opening-controls { right:8px; bottom:8px; left:8px; gap:6px; } .opening-controls button { min-width:0; padding:9px 12px; font-size:12px; } .opening-status { font-size:11px; }
-      #endingVideoControls { top:6px; right:6px; bottom:auto; left:auto; max-width:calc(100% - 12px); gap:4px; }
-      .ending-video-controls button { padding:6px 8px; font-size:10px; border-radius:8px; }
+      .ending-tap-prompt span { padding:10px 14px; font-size:12px; }
       .puzzle-map { width:min(100%,620px); } .puzzle-stagebar { font-size:12px; } .puzzle-panel h2 { margin-bottom:5px; }
       .village { width:68px; min-height:56px; padding:3px; font-size:11px; } .village .emoji { font-size:23px; } .puzzle-copy { margin:3px 0 7px; font-size:13px; }
       .direction-board { width:min(100%,610px); } .command-strip { margin:4px 0 6px; } .command-card { min-width:75px; padding:4px 8px; font-size:11px; } .command-card span { font-size:16px; } .house-option { width:65px; min-height:48px; font-size:11px; } .house-option .house-icon { font-size:21px; }
@@ -180,7 +178,7 @@
 <body>
   <main id="app"><section id="gameShell" aria-label="수학 왕국 RPG 아홉 개의 열쇠">
     <canvas id="gameCanvas" width="1280" height="720"></canvas>
-    <header class="hud"><div class="hud-card"><div>🧭</div><div><small id="objective">첫 임무: 모험가 길드로 가세요</small><strong id="sceneName">중앙 마을</strong></div></div><div class="hud-right"><div class="hud-card keys">🗝️ <span id="keyCount">0 / 9</span></div><div class="hud-card test-badge">FINAL V12.2 · 엔딩 버튼 상단 고정 · 무저장 · <span id="className">룬 기사</span></div></div></header>
+    <header class="hud"><div class="hud-card"><div>🧭</div><div><small id="objective">첫 임무: 모험가 길드로 가세요</small><strong id="sceneName">중앙 마을</strong></div></div><div class="hud-right"><div class="hud-card keys">🗝️ <span id="keyCount">0 / 9</span></div><div class="hud-card test-badge">FINAL V12.3 · 엔딩 전체 재생 · 무저장 · <span id="className">룬 기사</span></div></div></header>
     <div class="top-actions"><button id="fullscreenButton" class="icon-btn" aria-label="전체 화면" title="전체 화면">⛶</button><button id="infoButton" class="icon-btn" aria-label="도움말" title="도움말">?</button></div>
     <div id="nearbyPrompt">빛나는 입구를 찾아 이동하세요</div>
     <div class="controls" aria-label="게임 조작"><div class="dpad"><button data-dir="up" aria-label="위로 이동">▲</button><button data-dir="left" aria-label="왼쪽으로 이동">◀</button><button data-dir="right" aria-label="오른쪽으로 이동">▶</button><button data-dir="down" aria-label="아래로 이동">▼</button></div><button id="actionButton" aria-label="조사하기">조사</button></div>
@@ -197,7 +195,7 @@
         <p id="openingStatus" class="opening-status">재생 버튼을 누르면 소리와 함께 시작합니다.</p>
       </div>
     </section>
-    <section id="startOverlay" class="overlay hidden"><div class="panel"><p class="eyebrow">THE NINE KEYS</p><h1>수학 왕국<br>사라진 9개의 열쇠</h1><p class="lead">직업에 따라 같은 수학 법칙을 서로 다른 임무와 기술로 해결합니다. 룬 기사는 배치, 마법사는 논리와 연산, 궁수는 관찰과 추적에 강합니다.</p><div class="class-grid" role="group" aria-label="직업 선택"><button class="class-choice selected" data-class="knight"><span class="class-portrait knight"></span><strong>룬 기사</strong><small>룬 감응과 배치</small></button><button class="class-choice" data-class="mage"><span class="class-portrait mage"></span><strong>아르카나 마법사</strong><small>규칙 해석과 연산</small></button><button class="class-choice" data-class="ranger"><span class="class-portrait ranger"></span><strong>그림자 궁수</strong><small>관찰과 추적</small></button></div><div class="button-row"><button id="startButton" class="primary" disabled>이미지 불러오는 중…</button></div><p class="note"><strong>파일 버전: FINAL-V12.2-END-CONTROLS-FIXED-NO-SAVE</strong><br>오프닝·직업별 퀘스트·아홉 문제·직업별 엔딩 영상이 적용되었으며, 엔딩 버튼은 모바일에서도 우측 상단에 강제 고정됩니다.</p></div></section>
+    <section id="startOverlay" class="overlay hidden"><div class="panel"><p class="eyebrow">THE NINE KEYS</p><h1>수학 왕국<br>사라진 9개의 열쇠</h1><p class="lead">직업에 따라 같은 수학 법칙을 서로 다른 임무와 기술로 해결합니다. 룬 기사는 배치, 마법사는 논리와 연산, 궁수는 관찰과 추적에 강합니다.</p><div class="class-grid" role="group" aria-label="직업 선택"><button class="class-choice selected" data-class="knight"><span class="class-portrait knight"></span><strong>룬 기사</strong><small>룬 감응과 배치</small></button><button class="class-choice" data-class="mage"><span class="class-portrait mage"></span><strong>아르카나 마법사</strong><small>규칙 해석과 연산</small></button><button class="class-choice" data-class="ranger"><span class="class-portrait ranger"></span><strong>그림자 궁수</strong><small>관찰과 추적</small></button></div><div class="button-row"><button id="startButton" class="primary" disabled>이미지 불러오는 중…</button></div><p class="note"><strong>파일 버전: FINAL-V12.3-FULL-END-MOVIE-NO-SAVE</strong><br>오프닝·직업별 퀘스트·아홉 문제·직업별 엔딩 영상이 적용되었으며, 엔딩은 버튼 없이 끝까지 재생된 뒤 결과 화면으로 자동 전환됩니다.</p></div></section>
     <section id="storyOverlay" class="overlay hidden"><div class="panel"><div id="storyIcon" class="story-icon">✨</div><div id="storySpeaker" class="story-speaker">왕립 안내인 루미</div><h2 id="storyTitle">아홉 개의 열쇠</h2><div id="storyText" class="lead"></div><div class="button-row"><button id="storyNext" class="primary">다음</button><button id="storySkip" class="secondary">건너뛰기</button></div></div></section>
     <section id="puzzleOverlay" class="overlay hidden"><div class="panel puzzle-panel">
       <p class="eyebrow">첫 번째 열쇠 · 연결의 법칙</p><h2>사라진 길의 지도</h2>
@@ -242,12 +240,7 @@
     <section id="endingVideoOverlay" class="overlay opening-overlay hidden" aria-label="직업별 엔딩 영상">
       <video id="endingVideo" class="opening-video" preload="metadata" playsinline poster="assets/ending_title_card_v1.png"></video>
       <div class="opening-vignette"></div>
-      <div id="endingVideoControls" class="opening-controls ending-video-controls">
-        <button id="endingVideoStart" class="primary" aria-label="엔딩 영상 재생" hidden>▶ 엔딩 재생</button>
-        <button id="endingVideoMute" class="secondary" aria-label="엔딩 영상 음소거" title="음소거">🔊 음소거</button>
-        <button id="endingVideoSkip" class="secondary" aria-label="엔딩 영상 건너뛰기">건너뛰기</button>
-        <p id="endingVideoStatus" class="opening-status"></p>
-      </div>
+      <button id="endingTapPrompt" class="ending-tap-prompt" aria-label="엔딩 영상 재생" hidden><span>▶ 화면을 눌러 엔딩 재생</span></button>
     </section>
     <section id="endingOverlay" class="overlay hidden"><div class="panel ending-panel"><p class="eyebrow">THE NINE KEYS RESTORED</p><h1>수학 왕국의 길이<br>다시 열렸습니다</h1><div class="nine-keys" aria-label="되찾은 아홉 개의 열쇠"><span>🗺️</span><span>🧭</span><span>🕯️</span><span>🐷</span><span>🪙</span><span>⚖️</span><span>🎲</span><span>🔢</span><span>🏰</span></div><p class="lead">마지막 경계가 완성되자 아홉 개의 열쇠가 하나의 빛으로 이어졌습니다. 망각의 마법사 제로는 왕국에서 법칙을 지운 이유를 밝힙니다.</p><p class="lead"><strong>“답을 외우는 왕국은 다시 길을 잃는다. 관찰하고, 시험하고, 이유를 설명하는 사람이 있는 한 법칙은 사라지지 않는다.”</strong></p><p id="endingRoleText" class="lead">당신은 모든 수수께끼를 해결하고 수학 왕국의 새로운 <strong id="endingRole">법칙 수호자</strong>가 되었습니다.</p><div class="button-row" style="justify-content:center"><button id="endingClose" class="primary">왕국 자유 탐험</button><button id="endingReplayButton" class="secondary">엔딩 다시 보기</button><button id="endingReset" class="danger">새 모험 시작</button></div></div></section>
     <section id="infoOverlay" class="overlay hidden"><div class="panel"><h2>조작 방법</h2><p class="lead">PC는 방향키/WASD, 휴대폰은 왼쪽 아래 방향 버튼으로 이동합니다. 빛나는 <strong>❗ 조사 지점</strong> 가까이에서 조사 버튼을 누르세요. 3~8번 문제는 선택한 직업에 따라 임무 설명과 전용 기술이 달라집니다.</p><div class="button-row"><button id="infoClose" class="primary">계속하기</button><button id="openingReplayButton" class="secondary">오프닝 다시 보기</button><button id="classSwitchButton" class="secondary">직업 변경</button><button id="resetButton" class="danger">진행 초기화</button></div></div></section>
@@ -258,7 +251,7 @@
       // 수업 시간 안에 한 번에 완료하는 버전입니다. 브라우저에 진행 상태를 저장하지 않습니다.
       try{localStorage.removeItem('namsan_math_rpg_v6');}catch(_) {}
       const canvas=document.getElementById('gameCanvas'),ctx=canvas.getContext('2d'),W=canvas.width,H=canvas.height;
-      const ui=Object.fromEntries(['sceneName','objective','keyCount','className','nearbyPrompt','sceneFade','fadeText','openingOverlay','openingVideo','openingStart','openingMute','openingSkip','openingStatus','openingReplayButton','startOverlay','startButton','storyOverlay','storyIcon','storySpeaker','storyTitle','storyText','storyNext','storySkip','puzzleOverlay','puzzleStageChip','roadCounter','puzzleCopy','puzzleMap','bridgePreview','bridgeFinal','puzzleFeedback','hintButton','hintBox','puzzleClose','rewardOverlay','rewardClose','directionOverlay','directionBoard','directionToken','directionFeedback','directionConfirm','directionHint','directionHintBox','directionClose','reward2Overlay','reward2Close','challengeOverlay','classMission','classMissionIcon','classMissionName','classMissionTool','challengeEyebrow','challengeTitle','challengeStory','challengeBody','challengeFeedback','challengeHintBox','challengeSkill','challengeHint','challengeClose','questRewardOverlay','questRewardTitle','questRewardIcon','questRewardText','questRewardClose','endingVideoOverlay','endingVideo','endingVideoStart','endingVideoMute','endingVideoSkip','endingVideoStatus','endingOverlay','endingRole','endingRoleText','endingClose','endingReplayButton','endingReset','infoOverlay','infoButton','infoClose','classSwitchButton','resetButton','fullscreenButton','actionButton'].map(id=>[id,document.getElementById(id)]));
+      const ui=Object.fromEntries(['sceneName','objective','keyCount','className','nearbyPrompt','sceneFade','fadeText','openingOverlay','openingVideo','openingStart','openingMute','openingSkip','openingStatus','openingReplayButton','startOverlay','startButton','storyOverlay','storyIcon','storySpeaker','storyTitle','storyText','storyNext','storySkip','puzzleOverlay','puzzleStageChip','roadCounter','puzzleCopy','puzzleMap','bridgePreview','bridgeFinal','puzzleFeedback','hintButton','hintBox','puzzleClose','rewardOverlay','rewardClose','directionOverlay','directionBoard','directionToken','directionFeedback','directionConfirm','directionHint','directionHintBox','directionClose','reward2Overlay','reward2Close','challengeOverlay','classMission','classMissionIcon','classMissionName','classMissionTool','challengeEyebrow','challengeTitle','challengeStory','challengeBody','challengeFeedback','challengeHintBox','challengeSkill','challengeHint','challengeClose','questRewardOverlay','questRewardTitle','questRewardIcon','questRewardText','questRewardClose','endingVideoOverlay','endingVideo','endingTapPrompt','endingOverlay','endingRole','endingRoleText','endingClose','endingReplayButton','endingReset','infoOverlay','infoButton','infoClose','classSwitchButton','resetButton','fullscreenButton','actionButton'].map(id=>[id,document.getElementById(id)]));
       const sceneData={village:{name:'중앙 마을',image:'assets/central_village_map_anime_fantasy.png'},guild:{name:'모험가 길드',image:'assets/interior_adventurer_guild.png'},inn:{name:'주황 여관',image:'assets/interior_orange_inn.png'},library:{name:'마법 도서관',image:'assets/interior_arcane_library.png'},training:{name:'훈련장',image:'assets/interior_training_yard.png'},dungeon:{name:'봉인 던전',image:'assets/interior_sealed_dungeon.png'},castle:{name:'왕성 대전',image:'assets/interior_royal_castle.png'}};
       const characterData={
         knight:{name:'룬 기사',image:'assets/sprite_rune_knight_v1.png',motion:'walk',rows:[[0,377],[387,328],[720,366]],anchors:[-10,-3,5,9]},
@@ -398,18 +391,17 @@
       function closeChallenge(){state.challengeRunId+=1;hide(ui.challengeOverlay);}
       function prepareEnding(){const profile=classProfiles[state.character];ui.endingRole.textContent=profile.ending;ui.endingRoleText.dataset.character=state.character;}
       async function playEndingVideo(){
-        ui.endingVideoStatus.textContent='엔딩 영상을 재생합니다.';ui.endingVideo.muted=false;
+        ui.endingTapPrompt.hidden=true;ui.endingVideo.muted=false;
         try{if(!document.fullscreenElement&&window.matchMedia('(max-width: 900px)').matches)await document.getElementById('gameShell').requestFullscreen?.();}catch(_){}
         try{await screen.orientation?.lock?.('landscape');}catch(_){}
-        try{await ui.endingVideo.play();ui.endingVideoStart.hidden=true;ui.endingVideoMute.hidden=false;ui.endingVideoStatus.textContent='';}
-        catch(_){ui.endingVideoStart.hidden=false;ui.endingVideoMute.hidden=true;ui.endingVideoStatus.textContent='재생 버튼을 눌러 엔딩을 시작하세요.';}
+        try{await ui.endingVideo.play();ui.endingTapPrompt.hidden=true;}
+        catch(_){ui.endingTapPrompt.hidden=false;}
       }
       function openEndingVideo(){
-        prepareEnding();ui.endingVideo.pause();ui.endingVideo.src=endingVideoSources[state.character];ui.endingVideo.load();ui.endingVideo.currentTime=0;ui.endingVideo.muted=false;ui.endingVideoStart.hidden=true;ui.endingVideoMute.hidden=false;ui.endingVideoMute.textContent='🔊 음소거';ui.endingVideoStatus.textContent='';show(ui.endingVideoOverlay);playEndingVideo();
+        prepareEnding();ui.endingVideo.pause();ui.endingVideo.src=endingVideoSources[state.character];ui.endingVideo.load();ui.endingVideo.currentTime=0;ui.endingVideo.muted=false;ui.endingTapPrompt.hidden=true;show(ui.endingVideoOverlay);playEndingVideo();
       }
       function finishEndingVideo(){ui.endingVideo.pause();hide(ui.endingVideoOverlay);show(ui.endingOverlay);}
       function replayEndingVideo(){hide(ui.endingOverlay);openEndingVideo();}
-      function toggleEndingVideoMute(){ui.endingVideo.muted=!ui.endingVideo.muted;ui.endingVideoMute.textContent=ui.endingVideo.muted?'🔇 소리 켜기':'🔊 음소거';}
       function closeQuestReward(){const number=state.currentChallenge;hide(ui.questRewardOverlay);if(number===9)openEndingVideo();}
       function openClassSwitch(){hide(ui.infoOverlay);ui.startButton.textContent='이 직업으로 계속하기';show(ui.startOverlay);}
       function update(dt){if(!state.running||state.modalOpen||state.transitioning){state.moving=false;return;}state.portalCooldown=Math.max(0,state.portalCooldown-dt);let dx=0,dy=0;if(held.left)dx--;if(held.right)dx++;if(held.up)dy--;if(held.down)dy++;state.moving=Boolean(dx||dy);if(state.moving){const length=Math.hypot(dx,dy),speed=235*dt;movePlayer(dx/length*speed,dy/length*speed);}checkPortals();}
@@ -432,7 +424,7 @@
       document.querySelectorAll('[data-class]').forEach(button=>button.addEventListener('click',()=>selectClass(button.dataset.class)));document.querySelectorAll('.village').forEach(button=>button.addEventListener('click',()=>chooseVillage(button)));document.querySelectorAll('.road-hit').forEach(path=>path.addEventListener('click',()=>revealRoad(path)));document.querySelectorAll('[data-house]').forEach(button=>button.addEventListener('click',()=>runDirectionRoute(button.dataset.house)));
       ui.puzzleMap.addEventListener('pointerdown',startBridge);ui.puzzleMap.addEventListener('pointermove',moveBridge);ui.puzzleMap.addEventListener('pointerup',endBridge);ui.puzzleMap.addEventListener('pointercancel',cancelBridge);
       ui.openingStart.addEventListener('click',playOpening);ui.openingMute.addEventListener('click',toggleOpeningMute);ui.openingSkip.addEventListener('click',finishOpening);ui.openingVideo.addEventListener('ended',finishOpening);ui.openingVideo.addEventListener('error',()=>{ui.openingStatus.textContent='assets/opening.mp4 파일을 찾을 수 없습니다. 영상을 올리거나 건너뛰기를 누르세요.';ui.openingStart.hidden=true;});ui.openingReplayButton.addEventListener('click',replayOpening);
-      ui.endingVideoStart.addEventListener('click',playEndingVideo);ui.endingVideoMute.addEventListener('click',toggleEndingVideoMute);ui.endingVideoSkip.addEventListener('click',finishEndingVideo);ui.endingVideo.addEventListener('ended',finishEndingVideo);ui.endingVideo.addEventListener('error',()=>{ui.endingVideoStatus.textContent=`${endingVideoSources[state.character]} 파일을 찾을 수 없습니다. 건너뛰기를 누르면 결과 화면으로 이동합니다.`;ui.endingVideoStart.hidden=true;ui.endingVideoMute.hidden=true;});
+      ui.endingTapPrompt.addEventListener('click',playEndingVideo);ui.endingVideo.addEventListener('play',()=>{ui.endingTapPrompt.hidden=true;});ui.endingVideo.addEventListener('ended',finishEndingVideo);ui.endingVideo.addEventListener('error',()=>{setTimeout(finishEndingVideo,700);});
       ui.startButton.addEventListener('click',()=>{state.running=true;hide(ui.startOverlay);if(!state.prologueSeen)openStory();else updateHud();});ui.storyNext.addEventListener('click',()=>{if(state.storyStep<storySteps.length-1){state.storyStep+=1;renderStory();}else finishStory();});ui.storySkip.addEventListener('click',finishStory);
       ui.actionButton.addEventListener('click',interact);ui.hintButton.addEventListener('click',showPuzzleHint);ui.puzzleClose.addEventListener('click',()=>hide(ui.puzzleOverlay));ui.rewardClose.addEventListener('click',()=>hide(ui.rewardOverlay));ui.directionConfirm.addEventListener('click',confirmDirection);ui.directionHint.addEventListener('click',showDirectionHint);ui.directionClose.addEventListener('click',closeDirectionPuzzle);ui.reward2Close.addEventListener('click',()=>hide(ui.reward2Overlay));ui.challengeSkill.addEventListener('click',useClassSkill);ui.challengeHint.addEventListener('click',showChallengeHint);ui.challengeClose.addEventListener('click',closeChallenge);ui.questRewardClose.addEventListener('click',closeQuestReward);ui.endingClose.addEventListener('click',()=>hide(ui.endingOverlay));ui.endingReplayButton.addEventListener('click',replayEndingVideo);ui.endingReset.addEventListener('click',()=>{if(confirm('새 모험을 처음부터 시작할까요?'))location.reload();});ui.infoButton.addEventListener('click',()=>show(ui.infoOverlay));ui.infoClose.addEventListener('click',()=>hide(ui.infoOverlay));ui.classSwitchButton.addEventListener('click',openClassSwitch);
       ui.resetButton.addEventListener('click',()=>{if(confirm('직업 선택부터 다시 시작할까요?'))location.reload();});ui.fullscreenButton.addEventListener('click',async()=>{try{if(!document.fullscreenElement){await document.getElementById('gameShell').requestFullscreen();await screen.orientation?.lock?.('landscape');}else await document.exitFullscreen();}catch(_) {}});
