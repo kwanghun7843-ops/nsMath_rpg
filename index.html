@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- FILE VERSION: FINAL-V12-OPENING-CLASS-ENDINGS-NO-SAVE-20261008 -->
+<!-- FILE VERSION: FINAL-V12.1-END-CONTROLS-NO-SAVE-20261008 -->
 <html lang="ko">
 <head>
   <meta charset="utf-8">
@@ -47,6 +47,11 @@
     .opening-controls button { min-width:120px; box-shadow:0 8px 28px rgba(0,0,0,.5); }
     .opening-status { flex-basis:100%; min-height:20px; margin:0; color:#d7e8ef; font-size:13px; text-align:center; text-shadow:0 2px 8px #000; }
     .opening-controls [hidden] { display:none; }
+    .opening-controls.ending-video-controls { top:max(10px,env(safe-area-inset-top)); right:max(10px,env(safe-area-inset-right)); bottom:auto; left:auto; width:auto; max-width:min(460px,calc(100% - 20px)); justify-content:flex-end; gap:6px; flex-wrap:wrap; }
+    .ending-video-controls button { min-width:0; padding:8px 11px; border-color:rgba(255,255,255,.22); background:rgba(8,32,50,.68); box-shadow:0 4px 15px rgba(0,0,0,.34); font-size:12px; opacity:.82; backdrop-filter:blur(6px); }
+    .ending-video-controls button:hover,.ending-video-controls button:focus-visible { opacity:1; }
+    .ending-video-controls .opening-status { flex-basis:100%; min-height:0; padding:5px 8px; border-radius:8px; background:rgba(2,9,17,.66); text-align:right; }
+    .ending-video-controls .opening-status:empty { display:none; }
     .panel { width:min(94%,720px); max-height:94%; overflow:auto; padding:clamp(22px,4vw,42px); border-radius:23px; border:1px solid rgba(255,255,255,.22); background:linear-gradient(150deg,rgba(14,45,68,.98),rgba(5,18,31,.98)); box-shadow:0 28px 90px rgba(0,0,0,.58); }
     .eyebrow { margin:0 0 8px; color:var(--cyan); font-weight:900; letter-spacing:.08em; }
     h1,h2 { margin:0 0 14px; line-height:1.18; } h1 { font-size:clamp(29px,4.8vw,52px); } h2 { font-size:clamp(23px,3.6vw,36px); }
@@ -162,6 +167,8 @@
       .top-actions { top:50px; right:6px; } .icon-btn { width:35px; height:35px; } .dpad { transform:scale(.7); transform-origin:bottom left; } #actionButton { width:68px; height:68px; }
       .overlay { padding:7px; } .panel { padding:14px; border-radius:15px; } .class-grid { margin:7px 0; gap:5px; } .class-choice { padding:3px; } .class-portrait { width:62px; height:62px; }
       .opening-controls { right:8px; bottom:8px; left:8px; gap:6px; } .opening-controls button { min-width:0; padding:9px 12px; font-size:12px; } .opening-status { font-size:11px; }
+      .opening-controls.ending-video-controls { top:max(6px,env(safe-area-inset-top)); right:max(6px,env(safe-area-inset-right)); bottom:auto; left:auto; max-width:calc(100% - 12px); gap:4px; }
+      .ending-video-controls button { padding:6px 8px; font-size:10px; border-radius:8px; }
       .puzzle-map { width:min(100%,620px); } .puzzle-stagebar { font-size:12px; } .puzzle-panel h2 { margin-bottom:5px; }
       .village { width:68px; min-height:56px; padding:3px; font-size:11px; } .village .emoji { font-size:23px; } .puzzle-copy { margin:3px 0 7px; font-size:13px; }
       .direction-board { width:min(100%,610px); } .command-strip { margin:4px 0 6px; } .command-card { min-width:75px; padding:4px 8px; font-size:11px; } .command-card span { font-size:16px; } .house-option { width:65px; min-height:48px; font-size:11px; } .house-option .house-icon { font-size:21px; }
@@ -173,7 +180,7 @@
 <body>
   <main id="app"><section id="gameShell" aria-label="수학 왕국 RPG 아홉 개의 열쇠">
     <canvas id="gameCanvas" width="1280" height="720"></canvas>
-    <header class="hud"><div class="hud-card"><div>🧭</div><div><small id="objective">첫 임무: 모험가 길드로 가세요</small><strong id="sceneName">중앙 마을</strong></div></div><div class="hud-right"><div class="hud-card keys">🗝️ <span id="keyCount">0 / 9</span></div><div class="hud-card test-badge">FINAL V12 · 직업별 엔딩 · 무저장 · <span id="className">룬 기사</span></div></div></header>
+    <header class="hud"><div class="hud-card"><div>🧭</div><div><small id="objective">첫 임무: 모험가 길드로 가세요</small><strong id="sceneName">중앙 마을</strong></div></div><div class="hud-right"><div class="hud-card keys">🗝️ <span id="keyCount">0 / 9</span></div><div class="hud-card test-badge">FINAL V12.1 · 엔딩 버튼 개선 · 무저장 · <span id="className">룬 기사</span></div></div></header>
     <div class="top-actions"><button id="fullscreenButton" class="icon-btn" aria-label="전체 화면" title="전체 화면">⛶</button><button id="infoButton" class="icon-btn" aria-label="도움말" title="도움말">?</button></div>
     <div id="nearbyPrompt">빛나는 입구를 찾아 이동하세요</div>
     <div class="controls" aria-label="게임 조작"><div class="dpad"><button data-dir="up" aria-label="위로 이동">▲</button><button data-dir="left" aria-label="왼쪽으로 이동">◀</button><button data-dir="right" aria-label="오른쪽으로 이동">▶</button><button data-dir="down" aria-label="아래로 이동">▼</button></div><button id="actionButton" aria-label="조사하기">조사</button></div>
@@ -190,7 +197,7 @@
         <p id="openingStatus" class="opening-status">재생 버튼을 누르면 소리와 함께 시작합니다.</p>
       </div>
     </section>
-    <section id="startOverlay" class="overlay hidden"><div class="panel"><p class="eyebrow">THE NINE KEYS</p><h1>수학 왕국<br>사라진 9개의 열쇠</h1><p class="lead">직업에 따라 같은 수학 법칙을 서로 다른 임무와 기술로 해결합니다. 룬 기사는 배치, 마법사는 논리와 연산, 궁수는 관찰과 추적에 강합니다.</p><div class="class-grid" role="group" aria-label="직업 선택"><button class="class-choice selected" data-class="knight"><span class="class-portrait knight"></span><strong>룬 기사</strong><small>룬 감응과 배치</small></button><button class="class-choice" data-class="mage"><span class="class-portrait mage"></span><strong>아르카나 마법사</strong><small>규칙 해석과 연산</small></button><button class="class-choice" data-class="ranger"><span class="class-portrait ranger"></span><strong>그림자 궁수</strong><small>관찰과 추적</small></button></div><div class="button-row"><button id="startButton" class="primary" disabled>이미지 불러오는 중…</button></div><p class="note"><strong>파일 버전: FINAL-V12-CLASS-ENDINGS-NO-SAVE</strong><br>오프닝·직업별 퀘스트·아홉 문제·직업별 엔딩 영상이 모두 적용되어 있으며, 새로고침하면 처음부터 시작합니다.</p></div></section>
+    <section id="startOverlay" class="overlay hidden"><div class="panel"><p class="eyebrow">THE NINE KEYS</p><h1>수학 왕국<br>사라진 9개의 열쇠</h1><p class="lead">직업에 따라 같은 수학 법칙을 서로 다른 임무와 기술로 해결합니다. 룬 기사는 배치, 마법사는 논리와 연산, 궁수는 관찰과 추적에 강합니다.</p><div class="class-grid" role="group" aria-label="직업 선택"><button class="class-choice selected" data-class="knight"><span class="class-portrait knight"></span><strong>룬 기사</strong><small>룬 감응과 배치</small></button><button class="class-choice" data-class="mage"><span class="class-portrait mage"></span><strong>아르카나 마법사</strong><small>규칙 해석과 연산</small></button><button class="class-choice" data-class="ranger"><span class="class-portrait ranger"></span><strong>그림자 궁수</strong><small>관찰과 추적</small></button></div><div class="button-row"><button id="startButton" class="primary" disabled>이미지 불러오는 중…</button></div><p class="note"><strong>파일 버전: FINAL-V12.1-END-CONTROLS-NO-SAVE</strong><br>오프닝·직업별 퀘스트·아홉 문제·직업별 엔딩 영상이 적용되었으며, 엔딩 버튼은 자막을 가리지 않도록 우측 상단에 표시됩니다.</p></div></section>
     <section id="storyOverlay" class="overlay hidden"><div class="panel"><div id="storyIcon" class="story-icon">✨</div><div id="storySpeaker" class="story-speaker">왕립 안내인 루미</div><h2 id="storyTitle">아홉 개의 열쇠</h2><div id="storyText" class="lead"></div><div class="button-row"><button id="storyNext" class="primary">다음</button><button id="storySkip" class="secondary">건너뛰기</button></div></div></section>
     <section id="puzzleOverlay" class="overlay hidden"><div class="panel puzzle-panel">
       <p class="eyebrow">첫 번째 열쇠 · 연결의 법칙</p><h2>사라진 길의 지도</h2>
@@ -235,10 +242,10 @@
     <section id="endingVideoOverlay" class="overlay opening-overlay hidden" aria-label="직업별 엔딩 영상">
       <video id="endingVideo" class="opening-video" preload="metadata" playsinline poster="assets/ending_title_card_v1.png"></video>
       <div class="opening-vignette"></div>
-      <div class="opening-controls">
-        <button id="endingVideoStart" class="primary" hidden>▶ 엔딩 재생</button>
-        <button id="endingVideoMute" class="secondary">🔊 음소거</button>
-        <button id="endingVideoSkip" class="secondary">건너뛰기</button>
+      <div class="opening-controls ending-video-controls">
+        <button id="endingVideoStart" class="primary" aria-label="엔딩 영상 재생" hidden>▶ 엔딩 재생</button>
+        <button id="endingVideoMute" class="secondary" aria-label="엔딩 영상 음소거" title="음소거">🔊 음소거</button>
+        <button id="endingVideoSkip" class="secondary" aria-label="엔딩 영상 건너뛰기">건너뛰기</button>
         <p id="endingVideoStatus" class="opening-status"></p>
       </div>
     </section>
