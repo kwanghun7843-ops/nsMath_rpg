@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- FILE VERSION: FINAL-V12.7-Q6-LAYOUT-ANALOG-JOYSTICK-20261012 -->
+<!-- FILE VERSION: FINAL-V12.7-CENTERED-PUZZLES-ANALOG-JOYSTICK-20261012 -->
 <html lang="ko">
 <head>
   <meta charset="utf-8">
@@ -144,7 +144,7 @@
     .pattern-options { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; width:min(100%,760px); }
     .pattern-card { padding:9px; border:2px solid rgba(255,255,255,.2); border-radius:14px; color:#fff; background:rgba(255,255,255,.06); cursor:pointer; font-weight:900; }
     .pattern-card svg { display:block; width:100%; height:130px; margin-bottom:5px; border-radius:10px; background:#8cba6f; }
-    .coin-board { position:relative; width:min(100%,620px); aspect-ratio:16/8; border:2px solid #d3b46d; border-radius:18px; background:radial-gradient(circle,#263b55,#101b2b); }
+    .coin-board { position:relative; width:min(100%,620px); aspect-ratio:16/8; margin:0 auto; border:2px solid #d3b46d; border-radius:18px; background:radial-gradient(circle,#263b55,#101b2b); }
     .coin,.coin-target { position:absolute; width:42px; height:42px; transform:translate(-50%,-50%); border-radius:50%; }
     .coin { z-index:3; border:3px solid #fff1a5; color:#6b4a12; background:radial-gradient(circle at 35% 30%,#fff5a4,#e6ad27 58%,#92631c); box-shadow:0 3px 8px #0008; cursor:pointer; font-weight:950; }
     .coin.selected { box-shadow:0 0 0 6px rgba(115,232,255,.45),0 3px 8px #0008; }
@@ -205,7 +205,7 @@
         <p id="openingStatus" class="opening-status">재생 버튼을 누르면 소리와 함께 시작합니다.</p>
       </div>
     </section>
-    <section id="startOverlay" class="overlay hidden"><div class="panel"><p class="eyebrow">THE NINE KEYS</p><h1>수학 왕국<br>사라진 9개의 열쇠</h1><p class="lead">직업에 따라 같은 수학 법칙을 서로 다른 임무와 기술로 해결합니다. 룬 기사는 배치, 마법사는 논리와 연산, 궁수는 관찰과 추적에 강합니다.</p><div class="class-grid" role="group" aria-label="직업 선택"><button class="class-choice selected" data-class="knight"><span class="class-portrait knight"></span><strong>룬 기사</strong><small>룬 감응과 배치</small></button><button class="class-choice" data-class="mage"><span class="class-portrait mage"></span><strong>아르카나 마법사</strong><small>규칙 해석과 연산</small></button><button class="class-choice" data-class="ranger"><span class="class-portrait ranger"></span><strong>그림자 궁수</strong><small>관찰과 추적</small></button></div><div class="button-row"><button id="startButton" class="primary" disabled>이미지 불러오는 중…</button></div><p class="note"><strong>파일 버전: FINAL-V12.7-Q6-LAYOUT-ANALOG-JOYSTICK</strong><br>V12.7의 문제와 통합 배경음악을 유지하면서 태블릿 이동을 360도 원형 조이스틱으로 변경했습니다.</p></div></section>
+    <section id="startOverlay" class="overlay hidden"><div class="panel"><p class="eyebrow">THE NINE KEYS</p><h1>수학 왕국<br>사라진 9개의 열쇠</h1><p class="lead">직업에 따라 같은 수학 법칙을 서로 다른 임무와 기술로 해결합니다. 룬 기사는 배치, 마법사는 논리와 연산, 궁수는 관찰과 추적에 강합니다.</p><div class="class-grid" role="group" aria-label="직업 선택"><button class="class-choice selected" data-class="knight"><span class="class-portrait knight"></span><strong>룬 기사</strong><small>룬 감응과 배치</small></button><button class="class-choice" data-class="mage"><span class="class-portrait mage"></span><strong>아르카나 마법사</strong><small>규칙 해석과 연산</small></button><button class="class-choice" data-class="ranger"><span class="class-portrait ranger"></span><strong>그림자 궁수</strong><small>관찰과 추적</small></button></div><div class="button-row"><button id="startButton" class="primary" disabled>이미지 불러오는 중…</button></div><p class="note"><strong>파일 버전: FINAL-V12.7-CENTERED-PUZZLES-ANALOG-JOYSTICK</strong><br>V12.7의 문제와 통합 배경음악을 유지하면서 태블릿 이동을 360도 원형 조이스틱으로 변경했습니다.</p></div></section>
     <section id="storyOverlay" class="overlay hidden"><div class="panel"><div id="storyIcon" class="story-icon">✨</div><div id="storySpeaker" class="story-speaker">왕립 안내인 루미</div><h2 id="storyTitle">아홉 개의 열쇠</h2><div id="storyText" class="lead"></div><div class="button-row"><button id="storyNext" class="primary">다음</button><button id="storySkip" class="secondary">건너뛰기</button></div></div></section>
     <section id="puzzleOverlay" class="overlay hidden"><div class="panel puzzle-panel">
       <p class="eyebrow">첫 번째 열쇠 · 연결의 법칙</p><h2>사라진 길의 지도</h2>
